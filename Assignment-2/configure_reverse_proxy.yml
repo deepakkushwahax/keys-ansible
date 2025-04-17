@@ -1,0 +1,48 @@
+- name: Configure Nginx as Reverse Proxy to Apache
+  hosts: servers
+  become: yes
+  tasks:
+
+    - name: Install Apache
+      apt:
+        name: apache2
+        state: present
+        update_cache: yes
+
+    - name: Change Apache port to 8080
+      lineinfile:
+        path: /etc/apache2/ports.conf
+        regexp: '^Listen '
+        line: 'Listen 8080'
+
+    - name: Update Apache default virtual host to listen on 8080
+      lineinfile:
+        path: /etc/apache2/sites-available/000-default.conf
+        regexp: '^\s*<VirtualHost '
+        line: '<VirtualHost *:8080>'
+
+    - name: Restart Apache
+      service:
+        name: apache2
+        state: restarted
+
+    - name: Configure Nginx as reverse proxy to Apache
+      copy:
+        dest: /etc/nginx/sites-available/default
+        content: |
+          server {
+              listen 80;
+              server_name devops.opstree.com;
+
+              location / {
+                  proxy_pass http://localhost:8080;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+              }
+          }
+
+    - name: Reload nginx
+      service:
+        name: nginx
+        state: reloaded
+

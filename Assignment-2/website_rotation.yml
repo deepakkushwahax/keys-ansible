@@ -1,0 +1,62 @@
+- name: Set up website content and rotation
+  hosts: servers
+  become: yes
+  tasks:
+
+    - name: Ensure Tanya's website directory exists
+      file:
+        path: /var/www/tanya
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Ensure Heena's website directory exists
+      file:
+        path: /var/www/heena
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Create Tanya's website index.html
+      copy:
+        content: "<h1>Welcome to Tanya's Website</h1>"
+        dest: /var/www/tanya/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Create Heena's website index.html
+      copy:
+        content: "<h1>Welcome to Heena's Website</h1>"
+        dest: /var/www/heena/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Remove default html directory if it exists
+      file:
+        path: /var/www/html
+        state: absent
+
+    - name: Link Tanya's website initially
+      file:
+        src: /var/www/tanya
+        dest: /var/www/html
+        state: link
+        force: yes
+
+    - name: Add cron job to switch websites every 2 hours
+      cron:
+        name: "Switch websites every 2 hours"
+        job: >
+          bash -c 'if [ $(($(date +\%H) % 4)) -lt 2 ]; then
+          ln -sfn /var/www/tanya /var/www/html;
+          else
+          ln -sfn /var/www/heena /var/www/html;
+          fi'
+        minute: "0"
+        hour: "*/2"
+        user: root
+

@@ -1,0 +1,30 @@
+- name: Install Nginx and logrotate
+  hosts: servers
+  become: yes
+  tasks:
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Install logrotate
+      apt:
+        name: logrotate
+        state: present
+
+    - name: Configure nginx log rotation
+      copy:
+        dest: /etc/logrotate.d/nginx
+        content: |
+          /var/log/nginx/*.log {
+              daily
+              missingok
+              rotate 7
+              compress
+              delaycompress
+              notifempty
+              create 0640 www-data adm
+              maxsize 1G
+          }
+

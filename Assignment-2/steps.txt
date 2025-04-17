@@ -1,0 +1,13 @@
+# Ansible Assignment-2 
+
+## STEP 1: Install Nginx + Configure Log Rotation
+ANSIBLE_STRATEGY=linear ansible-playbook install_nginx.yml -l servers --forks 1
+
+## STEP 2: Create Websites + 2-Hour Auto Switch
+ANSIBLE_STRATEGY=free ansible-playbook website_rotation.yml -l servers --forks 1
+
+## STEP 3: Install Apache
+ANSIBLE_STRATEGY=host_pinned ansible-playbook install_apache.yml -l servers --forks 1
+
+## STEP 4: Configure Nginx as Reverse Proxy
+ANSIBLE_STRATEGY=linear ansible-playbook configure_reverse_proxy.yml 
